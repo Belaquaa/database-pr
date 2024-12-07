@@ -19,8 +19,6 @@
 - **Spring Boot**
 - **Spring Data JPA**
 - **PostgreSQL**
-- **MapStruct**
-- **Lombok**
 
 ### Фронтенд
 
@@ -40,8 +38,8 @@
 1. **Клонирование Репозитория**
 
     ```bash
-    git clone https://github.com/yourusername/phone-directory.git
-    cd phone-directory
+    git clone https://github.com/Belaquaa/database-pr.git
+    cd database-pr
     ```
 
 2. **Настройка Базы Данных**
