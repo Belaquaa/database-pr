@@ -1,5 +1,6 @@
-package belaquaa.practic.database.formatter;
+package belaquaa.practic.database.mapper;
 
+import belaquaa.practic.database.formatter.PhoneNumberFormatter;
 import belaquaa.practic.database.model.User;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;

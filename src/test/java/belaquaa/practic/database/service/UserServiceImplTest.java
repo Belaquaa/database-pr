@@ -166,16 +166,16 @@ class UserServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<User> page = new PageImpl<>(List.of(sampleUser), pageable, 1);
 
-        when(userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCase(
-                search, search, search, pageable)).thenReturn(page);
+        when(userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrPhoneContaining(
+                search, search, search, search, pageable)).thenReturn(page);
 
         Page<User> result = userService.searchUsers(search, pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(sampleAddress.getStreet(), result.getContent().get(0).getAddress().getStreet());
-        verify(userRepository, times(1)).findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCase(
-                search, search, search, pageable);
+        verify(userRepository, times(1)).findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrPhoneContaining(
+                search, search, search, search, pageable);
     }
 
     @Test

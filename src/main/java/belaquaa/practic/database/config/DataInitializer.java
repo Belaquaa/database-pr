@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -17,16 +18,23 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.count() == 0) {
+            Set<String> generatedPhones = new HashSet<>();
             for (int i = 1; i <= 35; i++) {
+                String phone;
+                do {
+                    phone = generateRandomPhone();
+                } while (generatedPhones.contains(phone));
+                generatedPhones.add(phone);
+
                 User user = User.builder()
                         .firstName("Имя" + i)
                         .lastName("Фамилия" + i)
                         .patronymic("Отчество" + i)
-                        .phone(generateRandomPhone())
+                        .phone(phone)
                         .address(Address.builder()
                                 .street("Улица " + i)
                                 .house(String.valueOf(i))
-                                .building(i % 3 == 0 ? "Стр." + (i/3) : null)
+                                .building(i % 3 == 0 ? "Стр." + (i / 3) : null)
                                 .build())
                         .build();
                 userRepository.save(user);
@@ -35,10 +43,10 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private String generateRandomPhone() {
-        int code = 900 + (int)(Math.random()*100);
-        int part1 = 100 + (int)(Math.random()*900);
-        int part2 = 10 + (int)(Math.random()*90);
-        int part3 = 10 + (int)(Math.random()*90);
-        return String.format("+7(%03d)%03d-%02d-%02d", code, part1, part2, part3);
+        StringBuilder sb = new StringBuilder("7");
+        for (int i = 0; i < 10; i++) {
+            sb.append((int) (Math.random() * 10));
+        }
+        return sb.toString();
     }
 }

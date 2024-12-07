@@ -1,11 +1,14 @@
 package belaquaa.practic.database.controller;
 
 import belaquaa.practic.database.dto.PageDto;
-import belaquaa.practic.database.formatter.PageConverter;
+import belaquaa.practic.database.dto.UserDTO;
+import belaquaa.practic.database.mapper.PageConverter;
+import belaquaa.practic.database.mapper.UserMapper;
 import belaquaa.practic.database.model.User;
 import belaquaa.practic.database.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -30,17 +33,22 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
+        User user = userMapper.toEntity(userDTO);
         User createdUser = userService.create(user);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        UserDTO responseDto = userMapper.toDto(createdUser);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     @PutMapping("/{externalId}")
-    public ResponseEntity<User> updateUser(@PathVariable UUID externalId, @Valid @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable UUID externalId, @Valid @RequestBody UserDTO userDTO) {
+        User user = userMapper.toEntity(userDTO);
         User updatedUser = userService.updateByExternalId(externalId, user);
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        UserDTO responseDto = userMapper.toDto(updatedUser);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{externalId}")
@@ -50,13 +58,14 @@ public class UserController {
     }
 
     @GetMapping("/{externalId}")
-    public ResponseEntity<User> getUser(@PathVariable UUID externalId) {
+    public ResponseEntity<UserDTO> getUser(@PathVariable UUID externalId) {
         User user = userService.findByExternalId(externalId);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        UserDTO responseDto = userMapper.toDto(user);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<User>> listUsers(
+    public ResponseEntity<PageDto<UserDTO>> listUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "externalId") String sortField,
@@ -67,10 +76,14 @@ public class UserController {
                 : Sort.by(sortField).descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
+        Page<User> userPage;
         if (search != null && !search.isEmpty()) {
-            return new ResponseEntity<>(PageConverter.toPageDto(userService.searchUsers(search, pageRequest)), HttpStatus.OK);
+            userPage = userService.searchUsers(search, pageRequest);
         } else {
-            return new ResponseEntity<>(PageConverter.toPageDto(userService.findAll(pageRequest)), HttpStatus.OK);
+            userPage = userService.findAll(pageRequest);
         }
+
+        PageDto<UserDTO> pageDto = PageConverter.toPageDto(userPage.map(userMapper::toDto));
+        return new ResponseEntity<>(pageDto, HttpStatus.OK);
     }
 }

@@ -10,10 +10,16 @@ import java.util.UUID;
 
 public interface UserService {
     User create(User user);
+
     User updateByExternalId(UUID externalId, User user);
+
     void deleteByExternalId(UUID externalId);
+
     User findByExternalId(UUID externalId);
+
     Page<User> findAll(Pageable pageable);
+
     Page<User> searchUsers(String search, Pageable pageable);
+
     List<User> findAll();
 }

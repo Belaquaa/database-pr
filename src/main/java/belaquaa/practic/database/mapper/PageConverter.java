@@ -1,4 +1,4 @@
-package belaquaa.practic.database.formatter;
+package belaquaa.practic.database.mapper;
 
 import belaquaa.practic.database.dto.PageDto;
 import org.springframework.data.domain.Page;

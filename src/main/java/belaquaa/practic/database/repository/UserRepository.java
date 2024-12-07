@@ -11,6 +11,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByExternalId(UUID externalId);
 
-    Page<User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCase(
-            String firstName, String lastName, String patronymic, Pageable pageable);
+    Page<User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrPhoneContaining(
+            String firstName, String lastName, String patronymic, String phone, Pageable pageable);
 }
