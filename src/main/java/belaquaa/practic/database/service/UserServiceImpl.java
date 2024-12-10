@@ -24,12 +24,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @CachePut(value = "users", key = "#result.externalId")
+    @CacheEvict(value = {"usersPage", "usersSearchPage"}, allEntries = true)
     public User create(User user) {
         return userRepository.save(user);
     }
 
     @Override
     @CachePut(value = "users", key = "#externalId")
+    @CacheEvict(value = {"usersPage", "usersSearchPage"}, allEntries = true)
     public User updateByExternalId(UUID externalId, User user) {
         User existing = userRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(value = "users", key = "#externalId")
+    @CacheEvict(value = {"users", "usersPage", "usersSearchPage"}, key = "#externalId", allEntries = true)
     public void deleteByExternalId(UUID externalId) {
         User existing = userRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -57,13 +59,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(value = "usersPage", key = "{#pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
+    @Cacheable(value = "usersPage", key = "{#pageable.pageNumber, #pageable.pageSize}")
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
 
     @Override
-    @Cacheable(value = "usersSearchPage", key = "{#search, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
+    @Cacheable(value = "usersSearchPage", key = "{#search, #pageable.pageNumber, #pageable.pageSize}")
     public Page<User> searchUsers(String search, Pageable pageable) {
         return userSearchService.searchUsers(search, pageable);
     }

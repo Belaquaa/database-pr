@@ -6,6 +6,7 @@ import belaquaa.practic.database.formatter.PhoneNumberFormatter;
 import belaquaa.practic.database.model.Address;
 import belaquaa.practic.database.model.User;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.text.WordUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -34,9 +35,9 @@ public class UserMapper {
 
         return User.builder()
                 .externalId(dto.getExternalId())
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .patronymic(dto.getPatronymic())
+                .firstName(capitalizeFirstLetter(dto.getFirstName()))
+                .lastName(capitalizeFirstLetter(dto.getLastName()))
+                .patronymic(capitalizeFirstLetter(dto.getPatronymic()))
                 .phone(dto.getPhone())
                 .address(toEntity(dto.getAddress()))
                 .build();
@@ -80,5 +81,10 @@ public class UserMapper {
         String part2 = phone.substring(7, 9);
         String part3 = phone.substring(9, 11);
         return "+7(" + code + ")" + part1 + "-" + part2 + "-" + part3;
+    }
+
+    private String capitalizeFirstLetter(String value) {
+        if (value == null || value.isEmpty()) return value;
+        return WordUtils.capitalizeFully(value.toLowerCase());
     }
 }
