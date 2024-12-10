@@ -5,19 +5,16 @@ import belaquaa.practic.database.dto.UserDTO;
 import belaquaa.practic.database.formatter.PhoneNumberFormatter;
 import belaquaa.practic.database.model.Address;
 import belaquaa.practic.database.model.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
 
     private final PhoneNumberFormatter phoneNumberFormatter;
-
-    public UserMapper(PhoneNumberFormatter phoneNumberFormatter) {
-        this.phoneNumberFormatter = phoneNumberFormatter;
-    }
 
     public UserDTO toDto(User user) {
         if (user == null) return null;
@@ -66,15 +63,12 @@ public class UserMapper {
     }
 
     public List<UserDTO> toDtoList(List<User> users) {
-        return users.stream().map(this::toDto).collect(Collectors.toList());
+        return users.stream().map(this::toDto).toList();
     }
 
     /**
      * Форматирует номер телефона для вывода клиенту.
-     * Например, '79135334455' -> '+7(913)533-44-55'
-     *
-     * @param phone Нормализованный номер телефона.
-     * @return Отформатированный номер телефона.
+     * Например, '79135335577' -> '+7(913)533-55-77'
      */
     private String formatPhoneForOutput(String phone) {
         if (phone == null || phone.length() != 11 || !phone.startsWith("7")) {

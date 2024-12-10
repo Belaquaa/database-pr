@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,7 +75,7 @@ public class UserController {
 
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        Pageable pageRequest = PageRequest.of(page, size, sort);
 
         Page<User> userPage;
         if (search != null && !search.isEmpty()) {

@@ -72,6 +72,20 @@
 			<artifactId>spring-boot-starter-data-jdbc</artifactId>
 		</dependency>
 
+		<!-- ICU4J для транслитерации -->
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>71.1</version>
+		</dependency>
+
+		<!-- Apache Commons Text для LevenshteinDistance -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

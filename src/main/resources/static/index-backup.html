@@ -392,12 +392,11 @@
         handleSort();
 
         const userModal = document.getElementById('userModal');
-        userModal.addEventListener('shown.bs.modal', applyPhoneMaskForModal);
-
         userModal.addEventListener('show.bs.modal', function (event) {
-            const externalId = document.getElementById('userExternalId').value;
-            if (!externalId) {
+            const button = event.relatedTarget;
+            if (button && button.classList.contains('btn-success')) {
                 document.getElementById('userForm').reset();
+                document.getElementById('userExternalId').value = '';
                 document.getElementById('userModalLabel').textContent = 'Добавить пользователя';
             }
         });

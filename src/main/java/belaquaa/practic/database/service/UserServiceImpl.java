@@ -17,6 +17,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserSearchService userSearchService;
 
     @Override
     public User create(User user) {
@@ -55,8 +56,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> searchUsers(String search, Pageable pageable) {
-        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrPhoneContaining(
-                search, search, search, search, pageable);
+        return userSearchService.searchUsers(search, pageable);
     }
 
     @Override
