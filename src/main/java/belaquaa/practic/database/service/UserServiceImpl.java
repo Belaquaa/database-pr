@@ -3,6 +3,9 @@ package belaquaa.practic.database.service;
 import belaquaa.practic.database.model.User;
 import belaquaa.practic.database.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,11 +23,13 @@ public class UserServiceImpl implements UserService {
     private final UserSearchService userSearchService;
 
     @Override
+    @CachePut(value = "users", key = "#result.externalId")
     public User create(User user) {
         return userRepository.save(user);
     }
 
     @Override
+    @CachePut(value = "users", key = "#externalId")
     public User updateByExternalId(UUID externalId, User user) {
         User existing = userRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -37,6 +42,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#externalId")
     public void deleteByExternalId(UUID externalId) {
         User existing = userRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -44,17 +50,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#externalId")
     public User findByExternalId(UUID externalId) {
         return userRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
     @Override
+    @Cacheable(value = "usersPage", key = "{#pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }
 
     @Override
+    @Cacheable(value = "usersSearchPage", key = "{#search, #pageable.pageNumber, #pageable.pageSize, #pageable.sort}")
     public Page<User> searchUsers(String search, Pageable pageable) {
         return userSearchService.searchUsers(search, pageable);
     }
