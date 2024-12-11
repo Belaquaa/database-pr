@@ -534,13 +534,18 @@
             const externalId = document.getElementById('userExternalId').value;
             if (!externalId) {
                 document.getElementById('userForm').reset();
-                document.getElementById('userExternalId').value = ''; // Убедимся, что externalId очищен
+                document.getElementById('userExternalId').value = '';
                 document.getElementById('userModalLabel').textContent = 'Добавить пользователя';
             }
         });
 
         userModal.addEventListener('shown.bs.modal', function () {
             applyPhoneMaskForModal();
+        });
+
+        userModal.addEventListener('hidden.bs.modal', function () {
+            document.getElementById('userForm').reset();
+            document.getElementById('userExternalId').value = '';
         });
     });
 
