@@ -89,7 +89,6 @@ public class UserSearchService {
                 }
             }
         }
-
         return false;
     }
 
