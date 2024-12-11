@@ -12,9 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,101 +25,79 @@ public class UserSearchService {
     private final SimilarityService similarityService;
 
     public Page<User> searchUsers(String search, Pageable pageable) {
-
-        // Генерация различных вариантов поискового запроса
-        String translitSearch = transliterationService.transliterateToLatin(search);
-        String translitBackSearch = transliterationService.transliterateToCyrillic(search);
-        String layoutSearch = keyboardLayoutService.convertLayoutToRussian(search);
-
-        // Составляем список всех форм поискового запроса
-        List<String> searchForms = new ArrayList<>();
-        searchForms.add(search);
-        searchForms.add(translitSearch);
-        searchForms.add(layoutSearch);
-        if (!translitBackSearch.equalsIgnoreCase(search)) {
-            searchForms.add(translitBackSearch);
-        }
-
-        // Выполнение поиска по всем вариантам в одном запросе
+        List<String> searchForms = generateVariants(search);
         Page<User> initialResults = userRepository.searchByAllSearchTerms(
                 search,
-                translitSearch,
-                layoutSearch,
-                translitBackSearch,
+                transliterationService.transliterateToLatin(search),
+                keyboardLayoutService.convertLayoutToRussian(search),
+                transliterationService.transliterateToCyrillic(search),
                 pageable
         );
-
-        // Фильтрация результатов по расстоянию Левенштейна
         List<User> filteredUsers = initialResults.stream()
                 .filter(user -> isUserSimilar(user, searchForms))
                 .toList();
-
         return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
     }
 
+    private List<String> generateVariants(String input) {
+        List<String> variants = new ArrayList<>();
+        variants.add(input);
+
+        String translit = transliterationService.transliterateToLatin(input);
+        String translitBack = transliterationService.transliterateToCyrillic(input);
+        String layout = keyboardLayoutService.convertLayoutToRussian(input);
+
+        if (translit != null && !translit.equalsIgnoreCase(input)) {
+            log.info("Translit: {}", translit);
+            variants.add(translit);
+        }
+        if (layout != null && !layout.equalsIgnoreCase(input)) {
+            variants.add(layout);
+        }
+        if (translitBack != null && !translitBack.equalsIgnoreCase(input)) {
+            variants.add(translitBack);
+        }
+
+        return variants;
+    }
+
     private boolean isUserSimilar(User user, List<String> searchForms) {
-        for (String search : searchForms) {
-            String searchLower = search.toLowerCase();
+        return matchesFields(user, searchForms) || matchesPhone(user, searchForms);
+    }
 
-            // Проверка, начинается ли любое из полей с поискового запроса
-            if ((user.getFirstName() != null && user.getFirstName().toLowerCase().startsWith(searchLower)) ||
-                    (user.getLastName() != null && user.getLastName().toLowerCase().startsWith(searchLower)) ||
-                    (user.getPatronymic() != null && user.getPatronymic().toLowerCase().startsWith(searchLower))) {
-                return true;
-            }
+    private boolean matchesFields(User user, List<String> searchForms) {
+        List<String> userFields = Arrays.asList(user.getFirstName(), user.getLastName(), user.getPatronymic());
 
-            // Проверка схожести оригинальных полей с поисковым запросом
-            if (similarityService.isSimilar(user.getFirstName(), search) ||
-                    similarityService.isSimilar(user.getLastName(), search) ||
-                    similarityService.isSimilar(user.getPatronymic(), search)) {
-                return true;
-            }
+        for (String field : userFields) {
+            if (field == null) continue;
+            List<String> fieldVariants = generateVariants(field);
 
-            // Получение транслитерированных полей
-            String translitFirstName = transliterationService.transliterateToLatin(user.getFirstName());
-            String translitLastName = transliterationService.transliterateToLatin(user.getLastName());
-            String translitPatronymic = transliterationService.transliterateToLatin(user.getPatronymic());
+            for (String variant : fieldVariants) {
+                if (variant == null) continue;
+                String variantLower = variant.toLowerCase();
 
-            // Проверка, начинается ли транслитерированное поле с поискового запроса
-            if ((translitFirstName != null && translitFirstName.toLowerCase().startsWith(searchLower)) ||
-                    (translitLastName != null && translitLastName.toLowerCase().startsWith(searchLower)) ||
-                    (translitPatronymic != null && translitPatronymic.toLowerCase().startsWith(searchLower))) {
-                return true;
-            }
+                for (String search : searchForms) {
+                    String searchLower = search.toLowerCase();
 
-            // Проверка схожести транслитерированных полей с поисковым запросом
-            if (similarityService.isSimilar(translitFirstName, search) ||
-                    similarityService.isSimilar(translitLastName, search) ||
-                    similarityService.isSimilar(translitPatronymic, search)) {
-                return true;
-            }
+                    if (variantLower.startsWith(searchLower)) {
+                        return true;
+                    }
 
-            // Получение полей, преобразованных из раскладки
-            String layoutFirstName = keyboardLayoutService.convertLayoutToRussian(user.getFirstName());
-            String layoutLastName = keyboardLayoutService.convertLayoutToRussian(user.getLastName());
-            String layoutPatronymic = keyboardLayoutService.convertLayoutToRussian(user.getPatronymic());
-
-            // Проверка, начинается ли поле, преобразованное из раскладки, с поискового запроса
-            if ((layoutFirstName != null && layoutFirstName.toLowerCase().startsWith(searchLower)) ||
-                    (layoutLastName != null && layoutLastName.toLowerCase().startsWith(searchLower)) ||
-                    (layoutPatronymic != null && layoutPatronymic.toLowerCase().startsWith(searchLower))) {
-                return true;
-            }
-
-            // Проверка схожести полей, преобразованных из раскладки, с поисковым запросом
-            if (similarityService.isSimilar(layoutFirstName, search) ||
-                    similarityService.isSimilar(layoutLastName, search) ||
-                    similarityService.isSimilar(layoutPatronymic, search)) {
-                return true;
+                    if (similarityService.isSimilar(variant, search)) {
+                        return true;
+                    }
+                }
             }
         }
 
-        // Обработка поля phone отдельно без использования SimilarityService
-        for (String search : searchForms) {
-            if (user.getPhone() != null && user.getPhone().toLowerCase().contains(search.toLowerCase())) {
-                return true;
-            }
-        }
         return false;
+    }
+
+    private boolean matchesPhone(User user, List<String> searchForms) {
+        if (user.getPhone() == null) return false;
+        String phoneLower = user.getPhone().toLowerCase();
+
+        return searchForms.stream()
+                .anyMatch(search -> search != null && phoneLower.contains(search.toLowerCase()));
     }
 }

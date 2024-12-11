@@ -10,8 +10,8 @@ public class TransliterationService {
     private final Transliterator toCyrillicTrans;
 
     public TransliterationService() {
-        this.toLatinTrans = Transliterator.getInstance("Cyrillic-Latin");
-        this.toCyrillicTrans = Transliterator.getInstance("Latin-Cyrillic");
+        this.toLatinTrans = Transliterator.getInstance("Russian-Latin/BGN");
+        this.toCyrillicTrans = Transliterator.getInstance("Latin-Russian/BGN");
     }
 
     public String transliterateToLatin(String input) {
