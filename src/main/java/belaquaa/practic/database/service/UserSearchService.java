@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -34,15 +33,6 @@ public class UserSearchService {
         String translitBackSearch = transliterationService.transliterateToCyrillic(search);
         String layoutSearch = keyboardLayoutService.convertLayoutToRussian(search);
 
-        // Выполнение поиска по всем вариантам
-        Page<User> initialResults = userRepository.searchByNameOrPhone(search, translitSearch, layoutSearch, pageable);
-
-        // Дополнительный поиск, если обратная транслитерация отличается
-        if (!translitBackSearch.equalsIgnoreCase(search)) {
-            Page<User> additionalResults = userRepository.searchByNameOrPhone(translitBackSearch, search, translitBackSearch, pageable);
-            initialResults = mergePages(initialResults, additionalResults, pageable);
-        }
-
         // Составляем список всех форм поискового запроса
         List<String> searchForms = new ArrayList<>();
         searchForms.add(search);
@@ -52,23 +42,21 @@ public class UserSearchService {
             searchForms.add(translitBackSearch);
         }
 
+        // Выполнение поиска по всем вариантам в одном запросе
+        Page<User> initialResults = userRepository.searchByAllSearchTerms(
+                search,
+                translitSearch,
+                layoutSearch,
+                translitBackSearch,
+                pageable
+        );
+
         // Фильтрация результатов по расстоянию Левенштейна
         List<User> filteredUsers = initialResults.stream()
                 .filter(user -> isUserSimilar(user, searchForms))
                 .toList();
 
         return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
-    }
-
-
-    private Page<User> mergePages(Page<User> page1, Page<User> page2, Pageable pageable) {
-        List<User> combined = new ArrayList<>();
-        combined.addAll(page1.getContent());
-        combined.addAll(page2.getContent());
-        combined = combined.stream()
-                .distinct()
-                .collect(Collectors.toList());
-        return new PageImpl<>(combined, pageable, combined.size());
     }
 
     private boolean isUserSimilar(User user, List<String> searchForms) {

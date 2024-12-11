@@ -26,9 +26,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "LOWER(u.patronymic) LIKE LOWER(CONCAT('%', :translitSearch, '%')) OR " +
             "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :layoutSearch, '%')) OR " +
             "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :layoutSearch, '%')) OR " +
-            "LOWER(u.patronymic) LIKE LOWER(CONCAT('%', :layoutSearch, '%'))")
-    Page<User> searchByNameOrPhone(@Param("search") String search,
-                                   @Param("translitSearch") String translitSearch,
-                                   @Param("layoutSearch") String layoutSearch,
-                                   Pageable pageable);
+            "LOWER(u.patronymic) LIKE LOWER(CONCAT('%', :layoutSearch, '%')) OR " +
+            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :translitBackSearch, '%')) OR " +
+            "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :translitBackSearch, '%')) OR " +
+            "LOWER(u.patronymic) LIKE LOWER(CONCAT('%', :translitBackSearch, '%'))")
+    Page<User> searchByAllSearchTerms(@Param("search") String search,
+                                      @Param("translitSearch") String translitSearch,
+                                      @Param("layoutSearch") String layoutSearch,
+                                      @Param("translitBackSearch") String translitBackSearch,
+                                      Pageable pageable);
 }

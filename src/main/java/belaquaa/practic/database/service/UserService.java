@@ -1,7 +1,7 @@
 package belaquaa.practic.database.service;
 
-import belaquaa.practic.database.model.User;
-import org.springframework.data.domain.Page;
+import belaquaa.practic.database.dto.PageDto;
+import belaquaa.practic.database.dto.UserDTO;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -9,17 +9,17 @@ import java.util.UUID;
 
 
 public interface UserService {
-    User create(User user);
+    UserDTO create(UserDTO userDTO);
 
-    User updateByExternalId(UUID externalId, User user);
+    UserDTO updateByExternalId(UUID externalId, UserDTO userDTO);
 
     void deleteByExternalId(UUID externalId);
 
-    User findByExternalId(UUID externalId);
+    UserDTO findByExternalId(UUID externalId);
 
-    Page<User> findAll(Pageable pageable);
+    PageDto<UserDTO> findAll(Pageable pageable, String sortField, String sortDir);
 
-    Page<User> searchUsers(String search, Pageable pageable);
+    PageDto<UserDTO> searchUsers(String search, Pageable pageable, String sortField, String sortDir);
 
-    List<User> findAll();
+    List<UserDTO> findAll();
 }

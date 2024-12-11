@@ -45,6 +45,8 @@ public class KeyboardLayoutService {
         map.put(',', 'б');
         map.put('.', 'ю');
         map.put('/', '.');
+        map.put('е', 'ё');
+        map.put('ё', 'е');
         return map;
     }
 
