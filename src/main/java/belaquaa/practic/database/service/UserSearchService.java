@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -36,18 +37,16 @@ public class UserSearchService {
         String[] terms = search.trim().split("\\s+");
         log.info("Термины поиска: {}", Arrays.toString(terms));
 
-        Specification<User> spec = Specification.where(null);
-
-        for (String term : terms) {
-            List<String> termVariants = generateVariants(term);
-            Specification<User> termSpec = buildTermSpecification(termVariants);
-            spec = spec.and(termSpec);
-        }
+        Specification<User> spec = Arrays.stream(terms)
+                .map(this::generateVariants)
+                .map(this::buildTermSpecification)
+                .reduce(Specification::and)
+                .orElse(Specification.where(null));
 
         Page<User> initialResults = userRepository.findAll(spec, pageable);
 
         List<User> filteredUsers = initialResults.stream()
-                .filter(user -> isUserSimilar(user, terms))
+                .filter(user -> Arrays.stream(terms).allMatch(term -> isUserSimilar(user, generateVariants(term))))
                 .toList();
 
         return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
@@ -92,55 +91,23 @@ public class UserSearchService {
         return variants;
     }
 
-    private boolean isUserSimilar(User user, String[] terms) {
-        for (String term : terms) {
-            List<String> termVariants = generateVariants(term);
-            boolean matches = matchesFields(user, termVariants) || matchesPhone(user, termVariants);
-            if (!matches) {
-                return false;
-            }
-        }
-        return true;
+    private boolean isUserSimilar(User user, List<String> termVariants) {
+        return matchesFields(user, termVariants) || matchesPhone(user, termVariants);
     }
+
     private boolean matchesFields(User user, List<String> searchForms) {
         List<String> userFields = Arrays.asList(user.getFirstName(), user.getLastName(), user.getPatronymic());
-
-        for (String field : userFields) {
-            if (field == null) continue;
-            List<String> fieldVariants = generateVariants(field);
-
-            for (String variant : fieldVariants) {
-                if (variant == null) continue;
-                String variantLower = variant.toLowerCase();
-
-                for (String search : searchForms) {
-                    String searchLower = search.toLowerCase();
-
-                    if ( (variantLower.startsWith(searchLower) ||
-                            variantLower.endsWith(searchLower) ) &&
-                            similarityService.isSimilar(variant, search)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+        return userFields.stream()
+                .filter(Objects::nonNull)
+                .flatMap(field -> generateVariants(field).stream())
+                .anyMatch(fieldVariant -> searchForms.stream()
+                        .anyMatch(search -> fieldVariant.toLowerCase().contains(search.toLowerCase())
+                                && similarityService.isSimilar(fieldVariant, search)));
     }
 
     private boolean matchesPhone(User user, List<String> searchForms) {
         if (user.getPhone() == null) return false;
         String phoneLower = user.getPhone().toLowerCase();
-
-        for (String search : searchForms) {
-            if (search == null) continue;
-            String searchLower = search.toLowerCase();
-            if (phoneLower.contains(searchLower)) {
-                return true;
-            }
-        }
-
-        return false;
+        return searchForms.stream().anyMatch(search -> search != null && phoneLower.contains(search.toLowerCase()));
     }
 }
-
