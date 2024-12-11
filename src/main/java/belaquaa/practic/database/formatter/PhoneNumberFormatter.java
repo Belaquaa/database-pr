@@ -26,4 +26,16 @@ public class PhoneNumberFormatter {
 
         throw new IllegalArgumentException("Некорректный формат номера телефона: " + input);
     }
+
+    public String formatPhoneForOutput(String phone) {
+        if (phone == null || phone.length() != 11 || !phone.startsWith("7")) {
+            return phone;
+        }
+
+        String code = phone.substring(1, 4);
+        String part1 = phone.substring(4, 7);
+        String part2 = phone.substring(7, 9);
+        String part3 = phone.substring(9, 11);
+        return "+7(" + code + ")" + part1 + "-" + part2 + "-" + part3;
+    }
 }

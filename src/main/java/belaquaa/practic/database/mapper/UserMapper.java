@@ -10,6 +10,7 @@ import org.apache.commons.text.WordUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class UserMapper {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .patronymic(user.getPatronymic())
-                .phone(formatPhoneForOutput(user.getPhone()))
+                .phone(phoneNumberFormatter.formatPhoneForOutput(user.getPhone()))
                 .address(toDto(user.getAddress()))
                 .build();
     }
@@ -33,14 +34,16 @@ public class UserMapper {
     public User toEntity(UserDTO dto) {
         if (dto == null) return null;
 
-        return User.builder()
-                .externalId(dto.getExternalId())
+        User.UserBuilder userBuilder = User.builder()
                 .firstName(capitalizeFirstLetter(dto.getFirstName()))
                 .lastName(capitalizeFirstLetter(dto.getLastName()))
                 .patronymic(capitalizeFirstLetter(dto.getPatronymic()))
-                .phone(dto.getPhone())
-                .address(toEntity(dto.getAddress()))
-                .build();
+                .phone(phoneNumberFormatter.normalizePhone(dto.getPhone()))
+                .address(toEntity(dto.getAddress()));
+
+        assignExternalId(dto, userBuilder);
+
+        return userBuilder.build();
     }
 
     public AddressDTO toDto(Address address) {
@@ -67,24 +70,16 @@ public class UserMapper {
         return users.stream().map(this::toDto).toList();
     }
 
-    /**
-     * Форматирует номер телефона для вывода клиенту.
-     * Например, '79135335577' -> '+7(913)533-55-77'
-     */
-    private String formatPhoneForOutput(String phone) {
-        if (phone == null || phone.length() != 11 || !phone.startsWith("7")) {
-            return phone; // Возвращаем как есть или можно вернуть null/ошибку
-        }
-
-        String code = phone.substring(1, 4);
-        String part1 = phone.substring(4, 7);
-        String part2 = phone.substring(7, 9);
-        String part3 = phone.substring(9, 11);
-        return "+7(" + code + ")" + part1 + "-" + part2 + "-" + part3;
-    }
-
     private String capitalizeFirstLetter(String value) {
         if (value == null || value.isEmpty()) return value;
         return WordUtils.capitalizeFully(value.toLowerCase());
+    }
+
+    private void assignExternalId(UserDTO dto, User.UserBuilder userBuilder) {
+        if (dto.getExternalId() == null) {
+            userBuilder.externalId(UUID.randomUUID());
+        } else {
+            userBuilder.externalId(dto.getExternalId());
+        }
     }
 }

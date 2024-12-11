@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Произошла ошибка. пожалуйста, попробуйте позже.");
+        response.put("message", "Произошла ошибка. пожалуйста, попробуйте позже./n" + ex.getLocalizedMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

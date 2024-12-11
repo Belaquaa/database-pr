@@ -30,7 +30,11 @@ services:
       - "8089:80"
     depends_on:
       - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin-config/servers.json:/pgadmin4/servers.json
     restart: always
 
 volumes:
   postgres_data:
+  pgadmin_data:
