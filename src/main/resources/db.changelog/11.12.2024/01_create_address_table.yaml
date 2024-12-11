@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11.12.2024_01
+      author: belaquaa@mail.ru
+      changes:
+        - createTable:
+            tableName: addresses
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: street
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: house
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: building
+                  type: VARCHAR(50)

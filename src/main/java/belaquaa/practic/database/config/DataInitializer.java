@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -84,6 +85,7 @@ public class DataInitializer implements CommandLineRunner {
                 String building = RANDOM.nextInt(3) == 0 ? "Стр." + (RANDOM.nextInt(10) + 1) : null;
 
                 User user = User.builder()
+                        .externalId(UUID.randomUUID())
                         .firstName(firstName)
                         .lastName(lastName)
                         .patronymic(patronymic)
@@ -104,6 +106,7 @@ public class DataInitializer implements CommandLineRunner {
             generatedPhones.add(phone1);
 
             User user1 = User.builder()
+                    .externalId(UUID.randomUUID())
                     .firstName("Владислав")
                     .lastName("Колесников")
                     .patronymic("Сергеевич")
@@ -123,6 +126,7 @@ public class DataInitializer implements CommandLineRunner {
             generatedPhones.add(phone2);
 
             User user2 = User.builder()
+                    .externalId(UUID.randomUUID())
                     .firstName("Динара")
                     .lastName("Матыгулина")
                     .patronymic("Тагировна")
