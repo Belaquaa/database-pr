@@ -37,19 +37,32 @@ public class UserSearchService {
         String[] terms = search.trim().split("\\s+");
         log.info("Термины поиска: {}", Arrays.toString(terms));
 
-        Specification<User> spec = Arrays.stream(terms)
-                .map(this::generateVariants)
-                .map(this::buildTermSpecification)
-                .reduce(Specification::and)
-                .orElse(Specification.where(null));
+        boolean isRegex = containsRegexSymbols(search);
 
-        Page<User> initialResults = userRepository.findAll(spec, pageable);
+        if (isRegex) {
+            return userRepository.searchUsersWithRegex(search, pageable);
+        } else {
+            Specification<User> spec = Arrays.stream(terms)
+                    .map(this::generateVariants)
+                    .map(this::buildTermSpecification)
+                    .reduce(Specification::and)
+                    .orElse(Specification.where(null));
 
-        List<User> filteredUsers = initialResults.stream()
-                .filter(user -> Arrays.stream(terms).allMatch(term -> isUserSimilar(user, generateVariants(term))))
-                .toList();
+            Page<User> initialResults = userRepository.findAll(spec, pageable);
 
-        return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
+            List<User> filteredUsers = initialResults.stream()
+                    .filter(user -> Arrays.stream(terms).allMatch(term -> isUserSimilar(user, generateVariants(term))))
+                    .toList();
+
+            return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
+        }
+    }
+
+    private boolean containsRegexSymbols(String input) {
+        return input.contains("*") || input.contains("+") || input.contains("?") || input.contains("{") ||
+                input.contains("}") || input.contains("[") || input.contains("]") || input.contains("(") ||
+                input.contains(")") || input.contains("|") || input.contains("\\") || input.contains("^") ||
+                input.contains("$") || input.contains(".");
     }
 
     private Specification<User> buildTermSpecification(List<String> termVariants) {
